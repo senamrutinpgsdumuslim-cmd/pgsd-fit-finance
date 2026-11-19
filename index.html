@@ -1,1 +1,471 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PGSD FIT FINANCE</title>
+<style>
+:root{--navy:#102747;--blue:#1d4ed8;--bg:#f3f6fb;--green:#07865d;--red:#d14343;--muted:#64748b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#172033}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px 16px;font-weight:700}
+.primary{background:var(--blue);color:white}
+.secondary{background:#e8eef8;color:var(--navy)}
+.danger{background:#fee2e2;color:#991b1b}
+header{background:var(--navy);color:white;padding:22px max(20px,calc((100% - 1100px)/2))}
+header h1{margin:0;font-size:23px}
+header p{margin:6px 0 0;color:#cbd5e1;font-size:13px}
+main{max-width:1100px;margin:24px auto;padding:0 16px 50px}
+.panel,.stat{background:white;border:1px solid #e4eaf2;border-radius:14px;padding:20px;margin-bottom:16px}
+h2{font-size:18px;margin:0 0 16px}
+h3{font-size:15px;margin:0 0 12px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #d6deea;border-radius:9px;background:white}
+small,.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat span{font-size:12px;color:var(--muted)}
+.stat strong{display:block;font-size:22px;margin-top:9px;overflow-wrap:anywhere}
+.green{color:var(--green)}.red{color:var(--red)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{background:#e7edf6;color:#334155}
+.tabs button.active{background:var(--navy);color:white}
+.hidden{display:none!important}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+.full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #e8edf4;vertical-align:top}
+th{background:#f7f9fc;color:#475569}
+.tablewrap{overflow-x:auto}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:bold;background:#e0f2fe;color:#075985}
+.notice{padding:12px;border-radius:9px;background:#eff6ff;color:#1e40af;font-size:13px;margin:12px 0}
+#message{margin:12px 0;font-size:13px}
+.loginbox{max-width:440px;margin:55px auto}
+.loginbox .panel{padding:26px}
+footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.stat strong{font-size:18px}main{margin-top:16px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>PGSD FIT FINANCE</h1>
+  <p>Sistem Pencatatan Keuangan Senam Rutin PGSD Universitas Almuslim</p>
+</header>
+
+<main>
+<section id="loginSection" class="loginbox">
+  <div class="panel">
+    <h2>Login Pengurus</h2>
+    <p class="muted">Masuk menggunakan email dan PIN yang telah didaftarkan oleh pengelola.</p>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="email pengurus" autocomplete="username">
+    <label>PIN</label>
+    <input id="pin" type="password" placeholder="Masukkan PIN" autocomplete="current-password">
+    <button class="primary" style="width:100%;margin-top:18px" onclick="login()">Masuk ke PGSD FIT FINANCE</button>
+    <div id="loginMessage"></div>
+  </div>
+</section>
+
+<section id="appSection" class="hidden">
+  <div class="row" style="margin-bottom:15px">
+    <div><strong id="welcome">Pengurus</strong><br><small id="userInfo"></small></div>
+    <button class="secondary" style="flex:0 0 auto" onclick="logout()">Keluar</button>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><span>Saldo Saat Ini</span><strong id="balance">Rp0</strong></div>
+    <div class="stat"><span>Total Pemasukan</span><strong class="green" id="income">Rp0</strong></div>
+    <div class="stat"><span>Total Pengeluaran</span><strong class="red" id="expense">Rp0</strong></div>
+    <div class="stat"><span>Jumlah Transaksi</span><strong id="count">0</strong></div>
+  </div>
+
+  <div class="tabs">
+    <button class="active" data-tab="dashboardTab" onclick="showTab(this)">Dashboard</button>
+    <button data-tab="transactionTab" onclick="showTab(this)">Tambah Transaksi</button>
+    <button data-tab="historyTab" onclick="showTab(this)">Riwayat</button>
+    <button data-tab="reportTab" onclick="showTab(this)">Rekap Mingguan/Bulanan</button>
+  </div>
+
+  <section id="dashboardTab" class="panel">
+    <h2>Ringkasan Keuangan</h2>
+    <p class="muted">Saldo dihitung dari saldo awal ditambah pemasukan dan dikurangi pengeluaran.</p>
+    <div class="notice">Saldo awal sistem: Rp0. Pastikan semua transaksi dicatat agar saldo sesuai dengan kas sebenarnya.</div>
+    <h3>Transaksi Terbaru</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Tanggal</th><th>Transaksi</th><th>Nominal</th></tr></thead>
+      <tbody id="recentRows"><tr><td colspan="3">Belum ada transaksi.</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section id="transactionTab" class="panel hidden">
+    <h2>Tambah Transaksi</h2>
+    <div class="formgrid">
+      <div>
+        <label>Jenis Transaksi</label>
+        <select id="type" onchange="updateCategories()">
+          <option value="PEMASUKAN">Pemasukan</option>
+          <option value="PENGELUARAN">Pengeluaran</option>
+        </select>
+      </div>
+      <div>
+        <label>Tanggal</label>
+        <input id="date" type="date">
+      </div>
+      <div>
+        <label>Kategori</label>
+        <select id="category"></select>
+      </div>
+      <div>
+        <label>Nominal (Rp)</label>
+        <input id="amount" type="number" min="1" step="1" placeholder="Contoh: 150000">
+      </div>
+      <div class="full">
+        <label>Keterangan transaksi</label>
+        <input id="description" placeholder="Jelaskan transaksi secara singkat">
+      </div>
+      <div>
+        <label>Pihak terkait (opsional)</label>
+        <input id="party" placeholder="Contoh: Nama peminjam sound system">
+      </div>
+      <div>
+        <label>Periode (opsional)</label>
+        <input id="period" placeholder="Contoh: Semester Ganjil 2026">
+      </div>
+      <div class="full" id="receiptArea">
+        <label>Bukti bon/kuitansi <span style="color:#dc2626">*</span></label>
+        <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+        <small>Wajib untuk pengeluaran. JPG, PNG, WEBP atau PDF. Maksimal 5 MB.</small>
+      </div>
+    </div>
+    <div class="notice" id="typeNote">Pemasukan akan menambah saldo kas.</div>
+    <button class="primary" id="saveButton" onclick="saveTransaction()">Simpan Transaksi</button>
+    <div id="formMessage"></div>
+  </section>
+
+  <section id="historyTab" class="panel hidden">
+    <div class="row">
+      <h2 style="flex:2">Riwayat Transaksi</h2>
+      <button class="secondary" style="flex:0 0 auto" onclick="exportCSV()">Ekspor CSV</button>
+    </div>
+    <div class="row">
+      <select id="historyFilter" onchange="renderHistory()">
+        <option value="">Semua transaksi</option>
+        <option value="PEMASUKAN">Pemasukan</option>
+        <option value="PENGELUARAN">Pengeluaran</option>
+      </select>
+      <input id="historySearch" placeholder="Cari kategori/keterangan..." oninput="renderHistory()">
+    </div>
+    <div class="tablewrap" style="margin-top:14px"><table>
+      <thead><tr><th>Tanggal</th><th>Jenis/Kategori</th><th>Keterangan</th><th>Nominal</th><th>Bukti</th></tr></thead>
+      <tbody id="historyRows"></tbody>
+    </table></div>
+    <small>Riwayat menampilkan maksimal 500 transaksi terbaru.</small>
+  </section>
+
+  <section id="reportTab" class="panel hidden">
+    <h2>Rekap Pengeluaran</h2>
+    <div class="row">
+      <div>
+        <label>Jenis Rekap</label>
+        <select id="reportMode" onchange="renderReport()">
+          <option value="week">Per Minggu</option>
+          <option value="month">Per Bulan</option>
+        </select>
+      </div>
+      <div>
+        <label>Tahun</label>
+        <select id="reportYear" onchange="renderReport()"></select>
+      </div>
+    </div>
+    <div class="grid" style="margin:15px 0">
+      <div class="stat"><span>Total Pengeluaran Tahun Ini</span><strong class="red" id="yearExpense">Rp0</strong></div>
+      <div class="stat"><span>Jumlah Transaksi</span><strong id="yearCount">0</strong></div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Periode</th><th>Jumlah Transaksi</th><th>Total Pengeluaran</th></tr></thead>
+      <tbody id="reportRows"></tbody>
+    </table></div>
+    <small>Rekap dihitung dari transaksi yang tercatat di sistem.</small>
+  </section>
+  <div id="message"></div>
+</section>
+</main>
+
+<footer>PGSD FIT FINANCE · Pengelolaan Keuangan Senam Rutin PGSD</footer>
+
+<iframe name="financeBridge" id="financeBridge" style="display:none"></iframe>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyFutQvsZa6LTMi6_vMAmi2EWeNbZ-HQi02VHlMlHcU5vmaDdfQUzvrOTRbvgac3K_7Eg/exec";
+
+let token = sessionStorage.getItem("financeToken") || "";
+let currentUser = null;
+let categories = [];
+let transactions = [];
+let pending = {};
+
+const money = n => new Intl.NumberFormat("id-ID", {
+  style:"currency",currency:"IDR",maximumFractionDigits:0
+}).format(Number(n)||0);
+
+function api(action, data={}) {
+  return new Promise((resolve,reject)=>{
+    const nonce = Date.now().toString(36)+Math.random().toString(36).slice(2);
+    pending[nonce] = {resolve,reject};
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = GAS_URL;
+    form.target = "financeBridge";
+    form.style.display = "none";
+    const input = document.createElement("input");
+    input.name = "payload";
+    input.value = JSON.stringify({action,token,nonce,...data});
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+    setTimeout(()=>{
+      if(pending[nonce]){
+        delete pending[nonce];
+        reject(new Error("Server tidak merespons. Periksa koneksi atau konfigurasi ALLOWED_ORIGIN."));
+      }
+    },30000);
+  });
+}
+
+window.addEventListener("message", event=>{
+  if(event.origin !== new URL(GAS_URL).origin) return;
+  const msg = event.data;
+  if(!msg || !msg.nonce || !pending[msg.nonce]) return;
+  const task = pending[msg.nonce];
+  delete pending[msg.nonce];
+  if(msg.ok) task.resolve(msg.data);
+  else task.reject(new Error(msg.error || "Terjadi kesalahan."));
+});
+
+function showMessage(id,text,isError=false){
+  const el=document.getElementById(id);
+  el.textContent=text;
+  el.style.color=isError?"#b91c1c":"#07865d";
+}
+
+async function login(){
+  const email=document.getElementById("email").value.trim();
+  const pin=document.getElementById("pin").value;
+  if(!email||!pin){showMessage("loginMessage","Isi email dan PIN terlebih dahulu.",true);return;}
+  showMessage("loginMessage","Sedang masuk...");
+  try{
+    const result=await api("login",{email,pin});
+    token=result.token;
+    sessionStorage.setItem("financeToken",token);
+    currentUser=result.user;
+    await openApp();
+  }catch(e){showMessage("loginMessage",e.message,true);}
+}
+
+async function openApp(){
+  document.getElementById("loginSection").classList.add("hidden");
+  document.getElementById("appSection").classList.remove("hidden");
+  document.getElementById("welcome").textContent="Selamat datang, "+(currentUser?.name||"Pengurus");
+  document.getElementById("userInfo").textContent=(currentUser?.email||"")+" · "+(currentUser?.role||"");
+  try{await refreshAll();}
+  catch(e){showMessage("message",e.message,true);}
+}
+
+async function logout(){
+  try{if(token) await api("logout");}catch(e){}
+  token="";currentUser=null;
+  sessionStorage.removeItem("financeToken");
+  document.getElementById("appSection").classList.add("hidden");
+  document.getElementById("loginSection").classList.remove("hidden");
+  document.getElementById("pin").value="";
+}
+
+async function refreshAll(){
+  const [dash,tx,cats]=await Promise.all([
+    api("dashboard"),api("transactions",{limit:500}),api("categories")
+  ]);
+  transactions=tx||[];
+  categories=cats||[];
+  document.getElementById("balance").textContent=money(dash.balance);
+  document.getElementById("income").textContent=money(dash.income);
+  document.getElementById("expense").textContent=money(dash.expense);
+  document.getElementById("count").textContent=dash.transactionCount||0;
+  renderRecent();
+  renderHistory();
+  prepareReportYears();
+  renderReport();
+  updateCategories();
+}
+
+function showTab(button){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  button.classList.add("active");
+  ["dashboardTab","transactionTab","historyTab","reportTab"].forEach(id=>
+    document.getElementById(id).classList.toggle("hidden",id!==button.dataset.tab)
+  );
+}
+
+function updateCategories(){
+  const type=document.getElementById("type").value;
+  const select=document.getElementById("category");
+  select.innerHTML="";
+  categories.filter(c=>c.type===type).forEach(c=>{
+    const o=document.createElement("option");o.value=c.name;o.textContent=c.name;select.appendChild(o);
+  });
+  const isExpense=type==="PENGELUARAN";
+  document.getElementById("receiptArea").classList.toggle("hidden",!isExpense);
+  document.getElementById("receipt").required=isExpense;
+  document.getElementById("typeNote").textContent=isExpense
+    ?"Pengeluaran wajib melampirkan bon/kuitansi. Transaksi akan mengurangi saldo kas."
+    :"Pemasukan akan menambah saldo kas. Untuk Denda Senam, isi periode semester pada kolom periode.";
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result).split(",")[1]);
+    reader.onerror=()=>reject(new Error("Gagal membaca file bukti."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveTransaction(){
+  const type=document.getElementById("type").value;
+  const file=document.getElementById("receipt").files[0];
+  const amount=Number(document.getElementById("amount").value);
+  if(!document.getElementById("date").value||!document.getElementById("description").value.trim()||!amount||amount<=0){
+    showMessage("formMessage","Lengkapi tanggal, keterangan, dan nominal dengan benar.",true);return;
+  }
+  if(type==="PENGELUARAN"&&!file){
+    showMessage("formMessage","Bukti bon/kuitansi wajib dilampirkan.",true);return;
+  }
+  if(file&&file.size>5*1024*1024){
+    showMessage("formMessage","Ukuran bukti maksimal 5 MB.",true);return;
+  }
+  if(file&&!["image/jpeg","image/png","image/webp","application/pdf"].includes(file.type)){
+    showMessage("formMessage","Format bukti harus JPG, PNG, WEBP, atau PDF.",true);return;
+  }
+
+  const button=document.getElementById("saveButton");
+  button.disabled=true;button.textContent="Menyimpan...";
+  showMessage("formMessage","Sedang menyimpan transaksi...");
+  try{
+    const payload={
+      type,category:document.getElementById("category").value,
+      description:document.getElementById("description").value.trim(),
+      amount,date:document.getElementById("date").value,
+      party:document.getElementById("party").value.trim(),
+      period:document.getElementById("period").value.trim()
+    };
+    if(file){
+      payload.receiptBase64=await fileToBase64(file);
+      payload.receiptMime=file.type;
+      payload.receiptName=file.name;
+    }
+    const result=await api("createTransaction",payload);
+    showMessage("formMessage",result.message+" ID: "+result.id);
+    ["amount","description","party","period","receipt"].forEach(id=>document.getElementById(id).value="");
+    await refreshAll();
+  }catch(e){showMessage("formMessage",e.message,true);}
+  finally{button.disabled=false;button.textContent="Simpan Transaksi";}
+}
+
+function renderRecent(){
+  const rows=transactions.slice(0,5);
+  document.getElementById("recentRows").innerHTML=rows.length?rows.map(t=>
+    `<tr><td>${escapeHtml(t.date)}</td><td>${escapeHtml(t.category)}</td><td>${money(t.amount)}</td></tr>`
+  ).join(""):'<tr><td colspan="3">Belum ada transaksi.</td></tr>';
+}
+
+function renderHistory(){
+  const type=document.getElementById("historyFilter").value;
+  const search=document.getElementById("historySearch").value.toLowerCase();
+  const rows=transactions.filter(t=>
+    (!type||t.type===type)&&
+    (String(t.category+" "+t.description+" "+t.party).toLowerCase().includes(search))
+  );
+  document.getElementById("historyRows").innerHTML=rows.length?rows.map(t=>`
+    <tr>
+      <td>${escapeHtml(t.date)}</td>
+      <td><span class="pill">${t.type==="PEMASUKAN"?"PEMASUKAN":"PENGELUARAN"}</span><br>${escapeHtml(t.category)}</td>
+      <td>${escapeHtml(t.description)}<br><small>${escapeHtml(t.party||"")}</small></td>
+      <td style="white-space:nowrap">${money(t.amount)}</td>
+      <td>${t.receiptUrl?`<a href="${escapeAttr(t.receiptUrl)}" target="_blank" rel="noopener">Lihat bukti</a>`:"-"}</td>
+    </tr>`).join(""):'<tr><td colspan="5">Tidak ada transaksi yang cocok.</td></tr>';
+}
+
+function prepareReportYears(){
+  const years=[...new Set(transactions.map(t=>String(t.date||"").slice(0,4)).filter(y=>/^\d{4}$/.test(y)))];
+  const current=String(new Date().getFullYear());
+  if(!years.includes(current))years.push(current);
+  years.sort((a,b)=>b.localeCompare(a));
+  const select=document.getElementById("reportYear");
+  const old=select.value;
+  select.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join("");
+  if(years.includes(old))select.value=old;
+}
+
+function isoWeek(dateString){
+  const d=new Date(dateString+"T12:00:00");
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day+3);
+  const first=new Date(d.getFullYear(),0,4);
+  const firstDay=(first.getDay()+6)%7;
+  first.setDate(first.getDate()-firstDay+3);
+  return d.getFullYear()+"-W"+String(1+Math.round((d-first)/604800000)).padStart(2,"0");
+}
+
+function renderReport(){
+  const year=document.getElementById("reportYear").value||String(new Date().getFullYear());
+  const mode=document.getElementById("reportMode").value;
+  const rows=transactions.filter(t=>t.type==="PENGELUARAN"&&String(t.date).startsWith(year));
+  const groups={};
+  rows.forEach(t=>{
+    const key=mode==="week"?isoWeek(t.date):String(t.date).slice(0,7);
+    if(!groups[key])groups[key]={total:0,count:0};
+    groups[key].total+=Number(t.amount)||0;
+    groups[key].count++;
+  });
+  const keys=Object.keys(groups).sort().reverse();
+  const total=rows.reduce((s,t)=>s+(Number(t.amount)||0),0);
+  document.getElementById("yearExpense").textContent=money(total);
+  document.getElementById("yearCount").textContent=rows.length;
+  document.getElementById("reportRows").innerHTML=keys.length?keys.map(k=>`
+    <tr><td>${mode==="week"?"Minggu ":"Bulan "}${k}</td><td>${groups[k].count}</td><td class="red">${money(groups[k].total)}</td></tr>
+  `).join(""):'<tr><td colspan="3">Belum ada pengeluaran pada tahun ini.</td></tr>';
+}
+
+function exportCSV(){
+  const rows=[["Tanggal","Jenis","Kategori","Keterangan","Nominal","Pihak terkait","Periode","Bukti"]];
+  transactions.forEach(t=>rows.push([t.date,t.type,t.category,t.description,t.amount,t.party,t.period,t.receiptUrl]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="PGSD-FIT-FINANCE-riwayat.csv";a.click();URL.revokeObjectURL(a.href);
+}
+
+function escapeHtml(value){
+  return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(value){return escapeHtml(value);}
+
+document.getElementById("date").value=new Date().toLocaleDateString("en-CA");
+document.getElementById("type").addEventListener("change",updateCategories);
+
+(async function restoreSession(){
+  if(!token)return;
+  try{
+    currentUser=await api("whoami");
+    await openApp();
+  }catch(e){
+    token="";sessionStorage.removeItem("financeToken");
+  }
+})();
+</script>
+</body>
+</html>
+
