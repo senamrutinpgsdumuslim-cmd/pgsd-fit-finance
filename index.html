@@ -210,22 +210,29 @@ const money = n => new Intl.NumberFormat("id-ID", {
   style:"currency",currency:"IDR",maximumFractionDigits:0
 }).format(Number(n)||0);
 
+
+let apiQueue = Promise.resolve();
+
 function api(action, data={}) {
-  return new Promise((resolve,reject)=>{
+  const runRequest = () => new Promise((resolve,reject)=>{
     const nonce = Date.now().toString(36)+Math.random().toString(36).slice(2);
     pending[nonce] = {resolve,reject};
+
     const form = document.createElement("form");
     form.method = "POST";
     form.action = GAS_URL;
     form.target = "financeBridge";
     form.style.display = "none";
+
     const input = document.createElement("input");
     input.name = "payload";
     input.value = JSON.stringify({action,token,nonce,...data});
+
     form.appendChild(input);
     document.body.appendChild(form);
     form.submit();
     form.remove();
+
     setTimeout(()=>{
       if(pending[nonce]){
         delete pending[nonce];
@@ -233,9 +240,12 @@ function api(action, data={}) {
       }
     },30000);
   });
+
+  const request = apiQueue.then(runRequest,runRequest);
+  apiQueue = request.catch(()=>{});
+
+  return request;
 }
-
-
 
 window.addEventListener("message", function(event) {
   console.log("FINANCE DEBUG:", {
