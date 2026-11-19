@@ -244,11 +244,10 @@ window.addEventListener("message", function(event) {
     data: event.data
   });
 
-  if (event.source !== document.getElementById("financeBridge").contentWindow) {
-    console.warn("Pesan ditolak: sumber berbeda dari financeBridge");
-    return;
-  }
-
+if (!event.origin.endsWith(".googleusercontent.com")) {
+  console.warn("Pesan ditolak: origin tidak dikenal");
+  return;
+}
   const msg = event.data;
 
   if (!msg || !msg.nonce || !pending[msg.nonce]) return;
