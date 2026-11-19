@@ -236,37 +236,33 @@ function api(action, data={}) {
 }
 
 
-window.addEventListener("message", event=>{
+
+window.addEventListener("message", function(event) {
   console.log("FINANCE DEBUG:", {
     origin: event.origin,
     sourceIsBridge: event.source === document.getElementById("financeBridge").contentWindow,
     data: event.data
   });
 
-  if(event.source !== document.getElementById("financeBridge").contentWindow) {
+  if (event.source !== document.getElementById("financeBridge").contentWindow) {
     console.warn("Pesan ditolak: sumber berbeda dari financeBridge");
     return;
   }
 
   const msg = event.data;
-  if(!msg || !msg.nonce || !pending[msg.nonce]) return;
+
+  if (!msg || !msg.nonce || !pending[msg.nonce]) return;
 
   const task = pending[msg.nonce];
   delete pending[msg.nonce];
 
-  if(msg.ok) task.resolve(msg.data);
-  else task.reject(new Error(msg.error || "Terjadi kesalahan."));
+  if (msg.ok) {
+    task.resolve(msg.data);
+  } else {
+    task.reject(new Error(msg.error || "Terjadi kesalahan."));
+  }
 });
 
-    const msg = event.data;
-  if(!msg || !msg.nonce || !pending[msg.nonce]) return;
-
-  const task = pending[msg.nonce];
-  delete pending[msg.nonce];
-
-  if(msg.ok) task.resolve(msg.data);
-  else task.reject(new Error(msg.error || "Terjadi kesalahan."));
-});
 
 function showMessage(id,text,isError=false){
   const el=document.getElementById(id);
