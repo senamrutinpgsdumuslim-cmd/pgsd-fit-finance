@@ -236,7 +236,7 @@ function api(action, data={}) {
 }
 
 window.addEventListener("message", event=>{
-  if(event.origin !== new URL(GAS_URL).origin) return;
+  if(event.source !== document.getElementById("financeBridge").contentWindow) return;
   const msg = event.data;
   if(!msg || !msg.nonce || !pending[msg.nonce]) return;
   const task = pending[msg.nonce];
