@@ -258,6 +258,16 @@ window.addEventListener("message", event=>{
   else task.reject(new Error(msg.error || "Terjadi kesalahan."));
 });
 
+    const msg = event.data;
+  if(!msg || !msg.nonce || !pending[msg.nonce]) return;
+
+  const task = pending[msg.nonce];
+  delete pending[msg.nonce];
+
+  if(msg.ok) task.resolve(msg.data);
+  else task.reject(new Error(msg.error || "Terjadi kesalahan."));
+});
+
 function showMessage(id,text,isError=false){
   const el=document.getElementById(id);
   el.textContent=text;
