@@ -910,14 +910,38 @@ function renderHistory(){
 }
 
 function prepareReportYears(){
-  const years=[...new Set(transactions.map(t=>String(t.date||"").slice(0,4)).filter(y=>/^\d{4}$/.test(y)))];
-  const current=String(new Date().getFullYear());
-  if(!years.includes(current))years.push(current);
-  years.sort((a,b)=>b.localeCompare(a));
-  const select=document.getElementById("reportYear");
-  const old=select.value;
-  select.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join("");
-  if(years.includes(old))select.value=old;
+  const dashboardYear = String(
+    document.getElementById("dashboardYear").textContent
+      .replace("Tahun ", "").trim()
+  );
+
+  const years = [
+    ...new Set(
+      transactions
+        .map(t => String(t.date || "").slice(0, 4))
+        .filter(y => /^\d{4}$/.test(y))
+    )
+  ];
+
+  if (dashboardYear && /^\d{4}$/.test(dashboardYear)) {
+    years.push(dashboardYear);
+  }
+
+  const uniqueYears = [...new Set(years)]
+    .sort((a, b) => b.localeCompare(a));
+
+  const select = document.getElementById("reportYear");
+  const old = select.value;
+
+  select.innerHTML = uniqueYears
+    .map(y => `<option value="${y}">${y}</option>`)
+    .join("");
+
+  if (uniqueYears.includes(old)) {
+    select.value = old;
+  } else {
+    select.value = dashboardYear;
+  }
 }
 
 function isoWeek(dateString){
