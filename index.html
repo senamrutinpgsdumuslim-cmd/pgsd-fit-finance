@@ -583,9 +583,19 @@ async function refreshAll(){
 function showTab(button){
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
   button.classList.add("active");
-  ["dashboardTab","transactionTab","historyTab","reportTab"].forEach(id=>
-    document.getElementById(id).classList.toggle("hidden",id!==button.dataset.tab)
-  );
+
+  [
+    "dashboardTab",
+    "transactionTab",
+    "historyTab",
+    "reportTab",
+    "lpjTab"
+  ].forEach(id=>{
+    document.getElementById(id).classList.toggle(
+      "hidden",
+      id !== button.dataset.tab
+    );
+  });
 }
 
 function addExpenseItem() {
