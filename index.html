@@ -563,6 +563,8 @@ async function refreshAll(){
   ]);
   transactions=tx||[];
   categories=cats||[];
+  document.getElementById("dashboardYear").textContent =
+  "Tahun " + dash.year;
   document.getElementById("balance").textContent=money(dash.balance);
   document.getElementById("income").textContent=money(dash.income);
   document.getElementById("expense").textContent=money(dash.expense);
