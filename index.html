@@ -46,6 +46,47 @@ th{background:#f7f9fc;color:#475569}
 .loginbox .panel{padding:26px}
 footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.stat strong{font-size:18px}main{margin-top:16px}}
+
+.item-box {
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  background: #f8fafc;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.item-grid input {
+  min-width: 0;
+}
+
+.item-box button {
+  margin-top: 8px;
+}
+
+.expense-summary {
+  background: #eff6ff;
+  padding: 14px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.expense-summary .total {
+  font-size: 21px;
+  font-weight: bold;
+  color: #07865d;
+}
+
+@media(max-width:700px) {
+  .item-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 </style>
 </head>
 <body>
@@ -99,51 +140,114 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
     </table></div>
   </section>
 
-  <section id="transactionTab" class="panel hidden">
-    <h2>Tambah Transaksi</h2>
-    <div class="formgrid">
-      <div>
-        <label>Jenis Transaksi</label>
-        <select id="type" onchange="updateCategories()">
-          <option value="PEMASUKAN">Pemasukan</option>
-          <option value="PENGELUARAN">Pengeluaran</option>
-        </select>
+
+<section id="transactionTab" class="panel hidden">
+  <h2>Tambah Transaksi</h2>
+
+  <div class="formgrid">
+    <div>
+      <label>Jenis Transaksi</label>
+      <select id="type" onchange="updateCategories()">
+        <option value="PEMASUKAN">Pemasukan</option>
+        <option value="PENGELUARAN">Pengeluaran</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Tanggal</label>
+      <input id="date" type="date">
+    </div>
+
+    <div>
+      <label>Kategori</label>
+      <select id="category"></select>
+    </div>
+
+    <div id="amountWrap">
+      <label>Nominal Pemasukan (Rp)</label>
+      <input id="amount" type="number" min="1"
+        step="1" placeholder="Contoh: 150000">
+    </div>
+
+    <div class="full">
+      <label>Keterangan transaksi</label>
+      <input id="description"
+        placeholder="Contoh: Pembelian perlengkapan kegiatan">
+    </div>
+
+    <div>
+      <label>Pihak terkait (opsional)</label>
+      <input id="party"
+        placeholder="Nama toko atau pihak terkait">
+    </div>
+
+    <div>
+      <label>Periode (opsional)</label>
+      <input id="period"
+        placeholder="Contoh: Semester Ganjil 2026">
+    </div>
+  </div>
+
+  <!-- RINCIAN BARANG -->
+  <div id="expenseArea" class="hidden">
+    <hr>
+    <h3>Rincian Barang yang Dibeli</h3>
+
+    <div class="notice">
+      Tambahkan semua barang yang dibeli dalam satu transaksi.
+      Sistem akan menghitung subtotal secara otomatis.
+    </div>
+
+    <div id="itemsContainer"></div>
+
+    <button type="button" class="secondary"
+      onclick="addExpenseItem()">
+      + Tambah Barang
+    </button>
+
+    <div class="expense-summary">
+      <div class="row">
+        <span>Subtotal Barang</span>
+        <strong id="subtotalPreview">Rp0</strong>
       </div>
-      <div>
-        <label>Tanggal</label>
-        <input id="date" type="date">
-      </div>
-      <div>
-        <label>Kategori</label>
-        <select id="category"></select>
-      </div>
-      <div>
-        <label>Nominal (Rp)</label>
-        <input id="amount" type="number" min="1" step="1" placeholder="Contoh: 150000">
-      </div>
-      <div class="full">
-        <label>Keterangan transaksi</label>
-        <input id="description" placeholder="Jelaskan transaksi secara singkat">
-      </div>
-      <div>
-        <label>Pihak terkait (opsional)</label>
-        <input id="party" placeholder="Contoh: Nama peminjam sound system">
-      </div>
-      <div>
-        <label>Periode (opsional)</label>
-        <input id="period" placeholder="Contoh: Semester Ganjil 2026">
-      </div>
-      <div class="full" id="receiptArea">
-        <label>Bukti bon/kuitansi <span style="color:#dc2626">*</span></label>
-        <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
-        <small>Wajib untuk pengeluaran. JPG, PNG, WEBP atau PDF. Maksimal 5 MB.</small>
+
+      <label>Diskon (Rp)</label>
+      <input id="discount" type="number"
+        min="0" step="1" value="0"
+        oninput="calculateExpenseTotal()">
+
+      <small>Masukkan diskon sesuai bon atau bukti pembayaran.</small>
+
+      <div class="row" style="margin-top:14px">
+        <strong>Total Pembayaran</strong>
+        <strong class="total" id="totalPreview">Rp0</strong>
       </div>
     </div>
-    <div class="notice" id="typeNote">Pemasukan akan menambah saldo kas.</div>
-    <button class="primary" id="saveButton" onclick="saveTransaction()">Simpan Transaksi</button>
-    <div id="formMessage"></div>
-  </section>
+  </div>
 
+  <!-- BUKTI -->
+  <div class="full" id="receiptArea">
+    <label>Bukti bon/kuitansi
+      <span style="color:#dc2626">*</span>
+    </label>
+    <input id="receipt" type="file"
+      accept="image/jpeg,image/png,image/webp,application/pdf">
+    <small id="receiptNote">
+      Wajib untuk pengeluaran. JPG, PNG, WEBP atau PDF. Maksimal 5 MB.
+    </small>
+  </div>
+
+  <div class="notice" id="typeNote">
+    Pemasukan akan menambah saldo kas.
+  </div>
+
+  <button class="primary" id="saveButton"
+    onclick="saveTransaction()">
+    Simpan Transaksi
+  </button>
+
+  <div id="formMessage"></div>
+</section>
   <section id="historyTab" class="panel hidden">
     <div class="row">
       <h2 style="flex:2">Riwayat Transaksi</h2>
@@ -336,19 +440,126 @@ function showTab(button){
   );
 }
 
-function updateCategories(){
-  const type=document.getElementById("type").value;
-  const select=document.getElementById("category");
-  select.innerHTML="";
-  categories.filter(c=>c.type===type).forEach(c=>{
-    const o=document.createElement("option");o.value=c.name;o.textContent=c.name;select.appendChild(o);
+function addExpenseItem() {
+  const container = document.getElementById("itemsContainer");
+
+  const box = document.createElement("div");
+  box.className = "item-box";
+
+  box.innerHTML = `
+    <div class="item-grid">
+      <div>
+        <label>Nama Barang</label>
+        <input class="item-name" placeholder="Contoh: Kok">
+      </div>
+
+      <div>
+        <label>Jumlah</label>
+        <input class="item-quantity" type="number"
+          min="0.01" step="any" placeholder="2">
+      </div>
+
+      <div>
+        <label>Satuan</label>
+        <input class="item-unit" placeholder="Box">
+      </div>
+
+      <div>
+        <label>Harga Satuan</label>
+        <input class="item-price" type="number"
+          min="0" step="1" placeholder="85000">
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <small>Subtotal barang: </small>
+      <strong class="item-subtotal">Rp0</strong>
+    </div>
+
+    <button type="button" class="danger"
+      onclick="removeExpenseItem(this)">
+      Hapus Barang
+    </button>
+  `;
+
+  container.appendChild(box);
+  calculateExpenseTotal();
+}
+
+function removeExpenseItem(button) {
+  button.closest(".item-box").remove();
+  calculateExpenseTotal();
+}
+
+function calculateExpenseTotal() {
+  let subtotal = 0;
+
+  document.querySelectorAll(".item-box").forEach(box => {
+    const qty = Number(box.querySelector(".item-quantity").value) || 0;
+    const price = Number(box.querySelector(".item-price").value) || 0;
+
+    const itemTotal = Math.round(qty * price);
+    subtotal += itemTotal;
+
+    box.querySelector(".item-subtotal").textContent = money(itemTotal);
   });
-  const isExpense=type==="PENGELUARAN";
-  document.getElementById("receiptArea").classList.toggle("hidden",!isExpense);
-  document.getElementById("receipt").required=isExpense;
-  document.getElementById("typeNote").textContent=isExpense
-    ?"Pengeluaran wajib melampirkan bon/kuitansi. Transaksi akan mengurangi saldo kas."
-    :"Pemasukan akan menambah saldo kas. Untuk Denda Senam, isi periode semester pada kolom periode.";
+
+  const discount = Number(
+    document.getElementById("discount").value
+  ) || 0;
+
+  document.getElementById("subtotalPreview").textContent =
+    money(subtotal);
+
+  document.getElementById("totalPreview").textContent =
+    money(subtotal - discount);
+
+  return { subtotal, discount, total: subtotal - discount };
+}
+
+document.addEventListener("input", function(event) {
+  if (
+    event.target.matches(".item-quantity") ||
+    event.target.matches(".item-price")
+  ) {
+    calculateExpenseTotal();
+  }
+});
+
+function updateCategories() {
+  const type = document.getElementById("type").value;
+  const select = document.getElementById("category");
+
+  select.innerHTML = "";
+
+  categories.filter(c => c.type === type).forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.name;
+    option.textContent = c.name;
+    select.appendChild(option);
+  });
+
+  const isExpense = type === "PENGELUARAN";
+
+  document.getElementById("receiptArea")
+    .classList.toggle("hidden", !isExpense);
+
+  document.getElementById("receipt").required = isExpense;
+
+  document.getElementById("amountWrap")
+    .classList.toggle("hidden", isExpense);
+
+  document.getElementById("expenseArea")
+    .classList.toggle("hidden", !isExpense);
+
+  document.getElementById("typeNote").textContent = isExpense
+    ? "Pengeluaran wajib memiliki rincian barang dan bukti bon/kuitansi."
+    : "Pemasukan akan menambah saldo kas. Untuk Denda Senam, isi periode semester pada kolom periode.";
+
+  if (isExpense &&
+      document.getElementById("itemsContainer").children.length === 0) {
+    addExpenseItem();
+  }
 }
 
 function fileToBase64(file){
@@ -360,47 +571,153 @@ function fileToBase64(file){
   });
 }
 
-async function saveTransaction(){
-  const type=document.getElementById("type").value;
-  const file=document.getElementById("receipt").files[0];
-  const amount=Number(document.getElementById("amount").value);
-  if(!document.getElementById("date").value||!document.getElementById("description").value.trim()||!amount||amount<=0){
-    showMessage("formMessage","Lengkapi tanggal, keterangan, dan nominal dengan benar.",true);return;
-  }
-  if(type==="PENGELUARAN"&&!file){
-    showMessage("formMessage","Bukti bon/kuitansi wajib dilampirkan.",true);return;
-  }
-  if(file&&file.size>5*1024*1024){
-    showMessage("formMessage","Ukuran bukti maksimal 5 MB.",true);return;
-  }
-  if(file&&!["image/jpeg","image/png","image/webp","application/pdf"].includes(file.type)){
-    showMessage("formMessage","Format bukti harus JPG, PNG, WEBP, atau PDF.",true);return;
+
+async function saveTransaction() {
+  const type = document.getElementById("type").value;
+  const file = document.getElementById("receipt").files[0];
+
+  const date = document.getElementById("date").value;
+  const description = document.getElementById("description").value.trim();
+
+  if (!date || !description) {
+    showMessage("formMessage",
+      "Lengkapi tanggal dan keterangan transaksi.", true);
+    return;
   }
 
-  const button=document.getElementById("saveButton");
-  button.disabled=true;button.textContent="Menyimpan...";
-  showMessage("formMessage","Sedang menyimpan transaksi...");
-  try{
-    const payload={
-      type,category:document.getElementById("category").value,
-      description:document.getElementById("description").value.trim(),
-      amount,date:document.getElementById("date").value,
-      party:document.getElementById("party").value.trim(),
-      period:document.getElementById("period").value.trim()
-    };
-    if(file){
-      payload.receiptBase64=await fileToBase64(file);
-      payload.receiptMime=file.type;
-      payload.receiptName=file.name;
+  let amount = Number(document.getElementById("amount").value);
+  let items = [];
+  let discount = 0;
+
+  if (type === "PEMASUKAN") {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      showMessage("formMessage",
+        "Nominal pemasukan harus lebih dari nol.", true);
+      return;
     }
-    const result=await api("createTransaction",payload);
-    showMessage("formMessage",result.message+" ID: "+result.id);
-    ["amount","description","party","period","receipt"].forEach(id=>document.getElementById(id).value="");
-    await refreshAll();
-  }catch(e){showMessage("formMessage",e.message,true);}
-  finally{button.disabled=false;button.textContent="Simpan Transaksi";}
-}
+  } else {
+    const boxes = [...document.querySelectorAll(".item-box")];
 
+    if (!boxes.length) {
+      showMessage("formMessage",
+        "Tambahkan minimal satu barang.", true);
+      return;
+    }
+
+    items = boxes.map(box => ({
+      name: box.querySelector(".item-name").value.trim(),
+      quantity: Number(box.querySelector(".item-quantity").value),
+      unit: box.querySelector(".item-unit").value.trim(),
+      unitPrice: Number(box.querySelector(".item-price").value),
+      note: ""
+    }));
+
+    if (items.some(item =>
+      !item.name ||
+      !item.unit ||
+      !Number.isFinite(item.quantity) ||
+      item.quantity <= 0 ||
+      !Number.isFinite(item.unitPrice) ||
+      item.unitPrice < 0
+    )) {
+      showMessage("formMessage",
+        "Periksa kembali nama barang, jumlah, satuan, dan harga.", true);
+      return;
+    }
+
+    const calculation = calculateExpenseTotal();
+    discount = calculation.discount;
+
+    if (!Number.isFinite(discount) ||
+        discount < 0 ||
+        discount > calculation.subtotal) {
+      showMessage("formMessage",
+        "Diskon tidak boleh melebihi subtotal barang.", true);
+      return;
+    }
+
+    amount = calculation.total;
+
+    if (amount <= 0) {
+      showMessage("formMessage",
+        "Total pembayaran harus lebih dari nol.", true);
+      return;
+    }
+
+    if (!file) {
+      showMessage("formMessage",
+        "Bukti bon/kuitansi wajib dilampirkan.", true);
+      return;
+    }
+  }
+
+  if (file && file.size > 5 * 1024 * 1024) {
+    showMessage("formMessage",
+      "Ukuran bukti maksimal 5 MB.", true);
+    return;
+  }
+
+  if (file && ![
+    "image/jpeg", "image/png", "image/webp", "application/pdf"
+  ].includes(file.type)) {
+    showMessage("formMessage",
+      "Format bukti harus JPG, PNG, WEBP, atau PDF.", true);
+    return;
+  }
+
+  const button = document.getElementById("saveButton");
+  button.disabled = true;
+  button.textContent = "Menyimpan...";
+
+  showMessage("formMessage", "Sedang menyimpan transaksi...");
+
+  try {
+    const payload = {
+      type,
+      category: document.getElementById("category").value,
+      description,
+      amount,
+      date,
+      party: document.getElementById("party").value.trim(),
+      period: document.getElementById("period").value.trim()
+    };
+
+    if (type === "PENGELUARAN") {
+      payload.items = items;
+      payload.discount = discount;
+    }
+
+    if (file) {
+      payload.receiptBase64 = await fileToBase64(file);
+      payload.receiptMime = file.type;
+      payload.receiptName = file.name;
+    }
+
+    const result = await api("createTransaction", payload);
+
+    showMessage("formMessage",
+      result.message + " ID: " + result.id);
+
+    document.getElementById("amount").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("party").value = "";
+    document.getElementById("period").value = "";
+    document.getElementById("receipt").value = "";
+
+    document.getElementById("itemsContainer").innerHTML = "";
+    document.getElementById("discount").value = "0";
+
+    await refreshAll();
+
+    updateCategories();
+
+  } catch (e) {
+    showMessage("formMessage", e.message, true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Simpan Transaksi";
+  }
+}
 function renderRecent(){
   const rows=transactions.slice(0,5);
   document.getElementById("recentRows").innerHTML=rows.length?rows.map(t=>
