@@ -450,6 +450,11 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
           <option value="Semester Genap 2027">Semester Genap 2027</option>
           <option value="Semester Ganjil 2027">Semester Ganjil 2027</option>
         </select>
+        <button type="button" class="primary"
+  style="margin-top:12px;width:100%"
+  onclick="loadLpj()">
+  Tampilkan LPJ
+</button>
       </div>
     </div>
 
@@ -664,6 +669,10 @@ function showTab(button){
       id !== button.dataset.tab
     );
   });
+
+  if (button.dataset.tab === "lpjTab") {
+    loadLpj();
+  }
 }
 
 function addExpenseItem() {
@@ -1475,6 +1484,95 @@ async function submitTransactionEdit() {
   } finally {
     button.disabled = false;
     button.textContent = "Simpan Perubahan";
+  }
+}
+  async function loadLpj() {
+  const period = document.getElementById("lpjPeriod").value;
+
+  if (!period) {
+    alert("Pilih periode LPJ terlebih dahulu.");
+    return;
+  }
+
+  try {
+    const result = await api("lpjData", {
+      period: period
+    });
+
+    document.getElementById("lpjOpening").textContent =
+      money(result.openingBalance);
+
+    document.getElementById("lpjIncome").textContent =
+      money(result.income);
+
+    document.getElementById("lpjExpense").textContent =
+      money(result.expense);
+
+    document.getElementById("lpjClosing").textContent =
+      money(result.closingBalance);
+
+    function renderCategoryRows(data, targetId) {
+      const tbody = document.getElementById(targetId);
+      tbody.innerHTML = "";
+
+      Object.entries(data || {}).forEach(([category, amount]) => {
+        const tr = document.createElement("tr");
+        const tdCategory = document.createElement("td");
+        const tdAmount = document.createElement("td");
+
+        tdCategory.textContent = category;
+        tdAmount.textContent = money(amount);
+
+        tr.appendChild(tdCategory);
+        tr.appendChild(tdAmount);
+        tbody.appendChild(tr);
+      });
+
+      if (!tbody.children.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="2">Belum ada transaksi.</td></tr>';
+      }
+    }
+
+    renderCategoryRows(
+      result.incomeCategories,
+      "lpjIncomeRows"
+    );
+
+    renderCategoryRows(
+      result.expenseCategories,
+      "lpjExpenseRows"
+    );
+
+    const transactionBody =
+      document.getElementById("lpjTransactionRows");
+
+    transactionBody.innerHTML = "";
+
+    (result.transactions || []).forEach(item => {
+      const tr = document.createElement("tr");
+
+      [
+        item.date,
+        item.type,
+        item.description,
+        money(item.amount)
+      ].forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value || "-";
+        tr.appendChild(td);
+      });
+
+      transactionBody.appendChild(tr);
+    });
+
+    if (!transactionBody.children.length) {
+      transactionBody.innerHTML =
+        '<tr><td colspan="4">Belum ada transaksi.</td></tr>';
+    }
+
+  } catch (error) {
+    alert("Gagal memuat LPJ: " + error.message);
   }
 }
 </script>
