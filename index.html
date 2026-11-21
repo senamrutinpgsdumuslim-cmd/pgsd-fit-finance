@@ -1667,6 +1667,13 @@ async function loadRiwayatLpj() {
         item.period,
         item.documentNumber,
         item.issueDate
+  ? new Date(item.issueDate).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Jakarta"
+    })
+  : "-"
       ].forEach(value => {
         const td = document.createElement('td');
         td.textContent = value || '-';
