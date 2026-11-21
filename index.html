@@ -455,6 +455,13 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
   onclick="loadLpj()">
   Tampilkan LPJ
 </button>
+        <button type="button" class="primary"
+  style="margin-top:10px;width:100%"
+  onclick="terbitkanLpj()">
+  Terbitkan PDF LPJ
+</button>
+
+<div id="lpjPdfResult" style="margin-top:12px"></div>
       </div>
     </div>
 
@@ -1573,6 +1580,41 @@ async function submitTransactionEdit() {
 
   } catch (error) {
     alert("Gagal memuat LPJ: " + error.message);
+  }
+}
+  async function terbitkanLpj() {
+  const period = document.getElementById('lpjPeriod').value;
+  const resultBox = document.getElementById('lpjPdfResult');
+
+  if (!period) {
+    alert('Pilih periode LPJ terlebih dahulu.');
+    return;
+  }
+
+  if (!confirm('Terbitkan PDF LPJ untuk ' + period + '?')) {
+    return;
+  }
+
+  resultBox.textContent = 'Sedang menerbitkan PDF LPJ...';
+
+  try {
+    const response = await api('terbitkanLpj', {
+      period: period
+    });
+
+    const result = response.data || response;
+
+    if (!result.success || !result.fileUrl) {
+      throw new Error(result.message || 'PDF gagal diterbitkan.');
+    }
+
+    resultBox.innerHTML =
+      '<strong>PDF LPJ berhasil diterbitkan!</strong><br>' +
+      '<a href="' + result.fileUrl +
+      '" target="_blank" rel="noopener noreferrer">Buka PDF LPJ</a>';
+
+  } catch (error) {
+    resultBox.textContent = 'Gagal menerbitkan PDF: ' + error.message;
   }
 }
 </script>
