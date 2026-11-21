@@ -878,6 +878,24 @@ function showTransactionDetail(id) {
   alert(detail);
 }
 </script>
+
+<div id="transactionModal" class="modal-overlay hidden" onclick="if(event.target===this) closeTransactionModal()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h2>Detail Transaksi</h2>
+        <small>Informasi lengkap transaksi keuangan</small>
+      </div>
+      <button type="button" class="secondary" onclick="closeTransactionModal()">✕</button>
+    </div>
+
+    <div id="transactionDetailContent"></div>
+
+    <div class="modal-footer">
+      <button type="button" class="secondary" onclick="closeTransactionModal()">Tutup</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 
