@@ -1050,6 +1050,15 @@ function showTransactionDetail(id) {
       : `<p>Tidak ada bukti transaksi.</p>`}
   `;
 
+  const role = String(currentUser?.role || "").trim().toUpperCase();
+
+  const editButton = document.getElementById("editTransactionButton");
+
+  editButton.style.display =
+    ["KETUA", "BENDAHARA"].includes(role) ? "inline-block" : "none";
+
+  editButton.dataset.transactionId = t.id;
+
   document.getElementById("transactionModal").classList.remove("hidden");
 }
 
