@@ -87,6 +87,148 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* MODAL DETAIL TRANSAKSI */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0 0 5px;
+  color: #102747;
+}
+
+.modal-header small {
+  color: #64748b;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+  margin-top: 20px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section h3 {
+  font-size: 15px;
+  color: #102747;
+  margin-bottom: 12px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-box {
+  background: #f3f6fb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.detail-box small {
+  display: block;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+
+.detail-box strong {
+  color: #102747;
+  overflow-wrap: anywhere;
+}
+
+.detail-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.detail-items th,
+.detail-items td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.detail-items th {
+  background: #f3f6fb;
+  color: #102747;
+}
+
+.detail-total {
+  background: #102747;
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 15px;
+}
+
+.detail-total .total-amount {
+  font-size: 23px;
+  font-weight: 800;
+  margin-top: 5px;
+}
+
+.detail-receipt {
+  display: inline-block;
+  margin-top: 10px;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 17px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-items {
+    font-size: 11px;
+  }
+}
+
 </style>
 </head>
 <body>
