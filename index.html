@@ -238,7 +238,7 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
 </header>
 
 <main>
-<section id="loginSection" class="loginbox">
+<section id="loginSection" class="loginbox hidden">
   <div class="panel">
     <h2>Login Pengurus</h2>
     <p class="muted">Masuk menggunakan email dan PIN yang telah didaftarkan oleh pengelola.</p>
@@ -1098,12 +1098,20 @@ document.getElementById("date").value=new Date().toLocaleDateString("en-CA");
 document.getElementById("type").addEventListener("change",updateCategories);
 
 (async function restoreSession(){
-  if(!token)return;
-  try{
-    currentUser=await api("whoami");
+  const loginSection = document.getElementById("loginSection");
+
+  if (!token) {
+    loginSection.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    currentUser = await api("whoami");
     await openApp();
-  }catch(e){
-    token="";sessionStorage.removeItem("financeToken");
+  } catch(e) {
+    token = "";
+    sessionStorage.removeItem("financeToken");
+    loginSection.classList.remove("hidden");
   }
 })();
   
