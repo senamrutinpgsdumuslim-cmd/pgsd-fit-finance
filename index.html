@@ -1080,6 +1080,78 @@ function closeTransactionModal() {
 
     <div id="transactionDetailContent"></div>
 
+<div id="transactionEditForm" class="hidden">
+
+  <div class="detail-section">
+    <h3>Ubah Informasi Transaksi</h3>
+
+    <label>Tanggal Transaksi</label>
+    <input type="date" id="editDate">
+
+    <label>Jenis Transaksi</label>
+    <select id="editType" onchange="updateEditCategories()">
+      <option value="PEMASUKAN">Pemasukan</option>
+      <option value="PENGELUARAN">Pengeluaran</option>
+    </select>
+
+    <label>Kategori</label>
+    <select id="editCategory"></select>
+
+    <label>Keterangan</label>
+    <input type="text" id="editDescription">
+
+    <label>Pihak Terkait</label>
+    <input type="text" id="editParty">
+
+    <label>Periode</label>
+    <input type="text" id="editPeriod">
+  </div>
+
+  <div id="editAmountWrap">
+    <label>Nominal Pemasukan (Rp)</label>
+    <input type="number" id="editAmount" min="1">
+  </div>
+
+  <div id="editExpenseArea" class="hidden">
+    <div class="detail-section">
+      <h3>Rincian Barang</h3>
+      <div id="editItemsContainer"></div>
+
+      <button type="button" class="secondary"
+        onclick="addEditItem()">
+        + Tambah Barang
+      </button>
+
+      <label>Diskon (Rp)</label>
+      <input type="number" id="editDiscount" min="0" value="0"
+        oninput="calculateEditTotal()">
+
+      <div class="detail-total">
+        <div>Subtotal: <strong id="editSubtotalPreview">Rp0</strong></div>
+        <div>Diskon: <strong id="editDiscountPreview">Rp0</strong></div>
+        <div class="total-amount" id="editTotalPreview">Rp0</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Bukti Transaksi</h3>
+      <p>Bukti lama tetap digunakan jika tidak diganti.</p>
+      <input type="file" id="editReceipt"
+        accept="image/jpeg,image/png,image/webp,application/pdf">
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="secondary"
+      onclick="cancelTransactionEdit()">Batal</button>
+
+    <button type="button" id="updateTransactionButton"
+      onclick="submitTransactionEdit()">
+      Simpan Perubahan
+    </button>
+  </div>
+
+</div>
 
 <div class="modal-footer" style="justify-content:space-between">
   <button
