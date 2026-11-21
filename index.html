@@ -462,6 +462,12 @@ footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
 </button>
 
 <div id="lpjPdfResult" style="margin-top:12px"></div>
+        <div style="margin-top:25px">
+  <h3>Riwayat Penerbitan LPJ</h3>
+  <div id="lpjHistory">
+    Memuat riwayat LPJ...
+  </div>
+</div>
       </div>
     </div>
 
@@ -677,11 +683,10 @@ function showTab(button){
     );
   });
 
-  if (button.dataset.tab === "lpjTab") {
-    loadLpj();
-  }
+if (button.dataset.tab === "lpjTab") {
+  loadLpj();
+  loadRiwayatLpj();
 }
-
 function addExpenseItem() {
   const container = document.getElementById("itemsContainer");
 
@@ -1612,11 +1617,80 @@ async function submitTransactionEdit() {
       '<strong>PDF LPJ berhasil diterbitkan!</strong><br>' +
       '<a href="' + result.fileUrl +
       '" target="_blank" rel="noopener noreferrer">Buka PDF LPJ</a>';
+    await loadRiwayatLpj();
 
   } catch (error) {
     resultBox.textContent = 'Gagal menerbitkan PDF: ' + error.message;
   }
 }
+  
+async function loadRiwayatLpj() {
+  const container = document.getElementById('lpjHistory');
+
+  container.textContent = 'Memuat riwayat LPJ...';
+
+  try {
+    const history = await api('riwayatLpj', {});
+
+    container.innerHTML = '';
+
+    if (!history || !history.length) {
+      container.textContent = 'Belum ada riwayat penerbitan LPJ.';
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Periode</th>
+          <th>Nomor Dokumen</th>
+          <th>Tanggal Terbit</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+    const tbody = table.querySelector('tbody');
+
+    history.forEach(item => {
+      const tr = document.createElement('tr');
+
+      [
+        item.period,
+        item.documentNumber,
+        item.issueDate
+      ].forEach(value => {
+        const td = document.createElement('td');
+        td.textContent = value || '-';
+        tr.appendChild(td);
+      });
+
+      const tdLink = document.createElement('td');
+      const link = document.createElement('a');
+
+      link.href = item.fileUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Buka PDF';
+
+      tdLink.appendChild(link);
+      tr.appendChild(tdLink);
+      tbody.appendChild(tr);
+    });
+
+    container.appendChild(table);
+
+  } catch (error) {
+    container.textContent =
+      'Gagal memuat riwayat LPJ: ' + error.message;
+  }
+}
+
 </script>
 
 <div id="transactionModal" class="modal-overlay hidden" onclick="if(event.target===this) closeTransactionModal()">
