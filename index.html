@@ -1071,9 +1071,24 @@ function closeTransactionModal() {
 
     <div id="transactionDetailContent"></div>
 
-    <div class="modal-footer">
-      <button type="button" class="secondary" onclick="closeTransactionModal()">Tutup</button>
-    </div>
+
+<div class="modal-footer" style="justify-content:space-between">
+  <button
+    type="button"
+    class="secondary"
+    id="editTransactionButton"
+    onclick="openTransactionEditor()"
+    style="display:none">
+    ✏️ Edit Transaksi
+  </button>
+
+  <button
+    type="button"
+    class="secondary"
+    onclick="closeTransactionModal()">
+    Tutup
+  </button>
+</div>
   </div>
 </div>
 </body>
