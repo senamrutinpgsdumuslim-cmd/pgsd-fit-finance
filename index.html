@@ -725,21 +725,41 @@ function renderRecent(){
   ).join(""):'<tr><td colspan="3">Belum ada transaksi.</td></tr>';
 }
 
+
 function renderHistory(){
-  const type=document.getElementById("historyFilter").value;
-  const search=document.getElementById("historySearch").value.toLowerCase();
-  const rows=transactions.filter(t=>
-    (!type||t.type===type)&&
-    (String(t.category+" "+t.description+" "+t.party).toLowerCase().includes(search))
+  const type = document.getElementById("historyFilter").value;
+  const search = document.getElementById("historySearch").value.toLowerCase();
+
+  const rows = transactions.filter(t =>
+    (!type || t.type === type) &&
+    (String(t.category + " " + t.description + " " + t.party).toLowerCase().includes(search))
   );
-  document.getElementById("historyRows").innerHTML=rows.length?rows.map(t=>`
-    <tr>
-      <td>${escapeHtml(t.date)}</td>
-      <td><span class="pill">${t.type==="PEMASUKAN"?"PEMASUKAN":"PENGELUARAN"}</span><br>${escapeHtml(t.category)}</td>
-      <td>${escapeHtml(t.description)}<br><small>${escapeHtml(t.party||"")}</small></td>
-      <td style="white-space:nowrap">${money(t.amount)}</td>
-      <td>${t.receiptUrl?`<a href="${escapeAttr(t.receiptUrl)}" target="_blank" rel="noopener">Lihat bukti</a>`:"-"}</td>
-    </tr>`).join(""):'<tr><td colspan="5">Tidak ada transaksi yang cocok.</td></tr>';
+
+  document.getElementById("historyRows").innerHTML = rows.length
+    ? rows.map((t, index) => `
+      <tr>
+        <td>${escapeHtml(t.date)}</td>
+        <td>
+          <span class="pill">${t.type === "PEMASUKAN" ? "PEMASUKAN" : "PENGELUARAN"}</span>
+          <br>${escapeHtml(t.category)}
+        </td>
+        <td>
+          ${escapeHtml(t.description)}
+          <br><small>${escapeHtml(t.party || "")}</small>
+        </td>
+        <td style="white-space:nowrap">${money(t.amount)}</td>
+        <td>
+          ${t.receiptUrl
+            ? `<a href="${escapeAttr(t.receiptUrl)}" target="_blank" rel="noopener">Lihat bukti</a>`
+            : "-"}
+          <br>
+          <button class="secondary" onclick="showTransactionDetail('${escapeAttr(t.id)}')">
+            Detail
+          </button>
+        </td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="5">Tidak ada transaksi yang cocok.</td></tr>';
 }
 
 function prepareReportYears(){
@@ -809,6 +829,54 @@ document.getElementById("type").addEventListener("change",updateCategories);
     token="";sessionStorage.removeItem("financeToken");
   }
 })();
+  
+function showTransactionDetail(id) {
+  const t = transactions.find(item => String(item.id) === String(id));
+
+  if (!t) {
+    alert("Data transaksi tidak ditemukan.");
+    return;
+  }
+
+  const items = Array.isArray(t.items) ? t.items : [];
+
+  let detail = `
+    DETAIL TRANSAKSI
+
+    Tanggal: ${t.date}
+    Jenis: ${t.type}
+    Kategori: ${t.category}
+    Keterangan: ${t.description}
+    Pihak terkait: ${t.party || "-"}
+    
+    RINCIAN BARANG
+  `;
+
+  if (items.length) {
+    detail += items.map((item, index) => `
+      ${index + 1}. ${item.name}
+      Jumlah: ${item.quantity} ${item.unit || ""}
+      Harga satuan: ${money(item.unitPrice)}
+      Subtotal: ${money(item.subtotal)}
+      ${item.note ? "Catatan: " + item.note : ""}
+    `).join("\n");
+  } else {
+    detail += "\nTidak ada rincian barang.";
+  }
+
+  detail += `
+
+  Subtotal: ${money(t.subtotal)}
+  Diskon: ${money(t.discount)}
+  TOTAL: ${money(t.amount)}
+  `;
+
+  if (t.receiptUrl) {
+    detail += `\nBukti transaksi: ${t.receiptUrl}`;
+  }
+
+  alert(detail);
+}
 </script>
 </body>
 </html>
