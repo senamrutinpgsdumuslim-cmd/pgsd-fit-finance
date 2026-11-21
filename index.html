@@ -636,7 +636,7 @@ function removeExpenseItem(button) {
 function calculateExpenseTotal() {
   let subtotal = 0;
 
-  document.querySelectorAll(".item-box").forEach(box => {
+  document.querySelectorAll("#itemsContainer .item-box").forEach(box => {
     const qty = Number(box.querySelector(".item-quantity").value) || 0;
     const price = Number(box.querySelector(".item-price").value) || 0;
 
@@ -661,8 +661,11 @@ function calculateExpenseTotal() {
 
 document.addEventListener("input", function(event) {
   if (
-    event.target.matches(".item-quantity") ||
-    event.target.matches(".item-price")
+    event.target.closest("#itemsContainer") &&
+    (
+      event.target.matches(".item-quantity") ||
+      event.target.matches(".item-price")
+    )
   ) {
     calculateExpenseTotal();
   }
@@ -974,6 +977,9 @@ document.getElementById("type").addEventListener("change",updateCategories);
   
 
 function showTransactionDetail(id) {
+  document.getElementById("transactionEditForm").classList.add("hidden");
+  document.getElementById("transactionDetailContent").classList.remove("hidden");
+
   const t = transactions.find(item => String(item.id) === String(id));
 
   if (!t) {
@@ -1066,6 +1072,303 @@ function closeTransactionModal() {
   document.getElementById("transactionModal").classList.add("hidden");
 }
 
+function openTransactionEditor() {
+  const id = document.getElementById("editTransactionButton").dataset.transactionId;
+  const t = transactions.find(item => String(item.id) === String(id));
+
+  if (!t) {
+    alert("Transaksi tidak ditemukan.");
+    return;
+  }
+
+  document.getElementById("transactionDetailContent").classList.add("hidden");
+  document.getElementById("transactionEditForm").classList.remove("hidden");
+
+  document.getElementById("editDate").value = t.date || "";
+  document.getElementById("editType").value = t.type || "PEMASUKAN";
+  document.getElementById("editDescription").value = t.description || "";
+  document.getElementById("editParty").value = t.party || "";
+  document.getElementById("editPeriod").value = t.period || "";
+  document.getElementById("editAmount").value = t.amount || 0;
+  document.getElementById("editDiscount").value = t.discount || 0;
+  document.getElementById("editReceipt").value = "";
+
+  updateEditCategories();
+  document.getElementById("editCategory").value = t.category;
+
+  const container = document.getElementById("editItemsContainer");
+  container.innerHTML = "";
+
+  if (t.type === "PENGELUARAN") {
+    (t.items || []).forEach(item => addEditItem(item));
+
+    if (!t.items || !t.items.length) {
+      addEditItem();
+    }
+  }
+
+  calculateEditTotal();
+}
+
+function updateEditCategories() {
+  const type = document.getElementById("editType").value;
+  const select = document.getElementById("editCategory");
+
+  select.innerHTML = "";
+
+  categories.filter(c => c.type === type).forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.name;
+    option.textContent = c.name;
+    select.appendChild(option);
+  });
+
+  const isExpense = type === "PENGELUARAN";
+
+  document.getElementById("editAmountWrap")
+    .classList.toggle("hidden", isExpense);
+
+  document.getElementById("editExpenseArea")
+    .classList.toggle("hidden", !isExpense);
+
+  if (isExpense &&
+      document.getElementById("editItemsContainer").children.length === 0) {
+    addEditItem();
+  }
+}
+  
+function addEditItem(item = {}) {
+  const container = document.getElementById("editItemsContainer");
+
+  const box = document.createElement("div");
+  box.className = "item-box";
+
+  box.innerHTML = `
+    <div class="item-grid">
+      <div>
+        <label>Nama Barang</label>
+        <input class="item-name" placeholder="Nama barang">
+      </div>
+
+      <div>
+        <label>Jumlah</label>
+        <input class="item-quantity" type="number"
+          min="0.01" step="any" placeholder="Jumlah">
+      </div>
+
+      <div>
+        <label>Satuan</label>
+        <input class="item-unit" placeholder="Satuan">
+      </div>
+
+      <div>
+        <label>Harga Satuan</label>
+        <input class="item-price" type="number"
+          min="0" step="1" placeholder="Harga">
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <small>Subtotal barang: </small>
+      <strong class="item-subtotal">Rp0</strong>
+    </div>
+
+    <button type="button" class="danger">
+      Hapus Barang
+    </button>
+  `;
+
+  box.querySelector(".item-name").value = item.name || "";
+  box.querySelector(".item-quantity").value = item.quantity ?? "";
+  box.querySelector(".item-unit").value = item.unit || "";
+  box.querySelector(".item-price").value = item.unitPrice ?? "";
+
+  box.querySelector("button").addEventListener("click", function() {
+    box.remove();
+    calculateEditTotal();
+  });
+
+  box.querySelector(".item-quantity").addEventListener("input", calculateEditTotal);
+  box.querySelector(".item-price").addEventListener("input", calculateEditTotal);
+
+  container.appendChild(box);
+  calculateEditTotal();
+}
+
+function calculateEditTotal() {
+  let subtotal = 0;
+
+  document.querySelectorAll("#editItemsContainer .item-box").forEach(box => {
+    const quantity = Number(box.querySelector(".item-quantity").value) || 0;
+    const price = Number(box.querySelector(".item-price").value) || 0;
+
+    const itemTotal = Math.round(quantity * price);
+    subtotal += itemTotal;
+
+    box.querySelector(".item-subtotal").textContent = money(itemTotal);
+  });
+
+  const discount = Number(
+    document.getElementById("editDiscount").value
+  ) || 0;
+
+  const total = subtotal - discount;
+
+  document.getElementById("editSubtotalPreview").textContent = money(subtotal);
+  document.getElementById("editDiscountPreview").textContent = money(discount);
+  document.getElementById("editTotalPreview").textContent =
+    "TOTAL: " + money(total);
+
+  return { subtotal, discount, total };
+}
+
+function cancelTransactionEdit() {
+  document.getElementById("transactionEditForm").classList.add("hidden");
+  document.getElementById("transactionDetailContent").classList.remove("hidden");
+
+  document.getElementById("editReceipt").value = "";
+
+  const button = document.getElementById("updateTransactionButton");
+  button.disabled = false;
+  button.textContent = "Simpan Perubahan";
+}
+  
+async function submitTransactionEdit() {
+  const id = document.getElementById("editTransactionButton").dataset.transactionId;
+  const type = document.getElementById("editType").value;
+  const file = document.getElementById("editReceipt").files[0];
+
+  const date = document.getElementById("editDate").value;
+  const description = document.getElementById("editDescription").value.trim();
+
+  if (!date || !description) {
+    alert("Tanggal dan keterangan transaksi wajib diisi.");
+    return;
+  }
+
+  const payload = {
+    id,
+    type,
+    date,
+    category: document.getElementById("editCategory").value,
+    description,
+    party: document.getElementById("editParty").value.trim(),
+    period: document.getElementById("editPeriod").value.trim()
+  };
+
+  if (!payload.category) {
+    alert("Pilih kategori transaksi.");
+    return;
+  }
+
+  if (type === "PEMASUKAN") {
+    const amount = Number(document.getElementById("editAmount").value);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      alert("Nominal pemasukan harus lebih dari nol.");
+      return;
+    }
+
+    payload.amount = amount;
+
+  } else {
+    const boxes = [
+      ...document.querySelectorAll("#editItemsContainer .item-box")
+    ];
+
+    if (!boxes.length) {
+      alert("Tambahkan minimal satu barang.");
+      return;
+    }
+
+    const items = boxes.map(box => ({
+      name: box.querySelector(".item-name").value.trim(),
+      quantity: Number(box.querySelector(".item-quantity").value),
+      unit: box.querySelector(".item-unit").value.trim(),
+      unitPrice: Number(box.querySelector(".item-price").value),
+      note: ""
+    }));
+
+    if (items.some(item =>
+      !item.name ||
+      !item.unit ||
+      !Number.isFinite(item.quantity) ||
+      item.quantity <= 0 ||
+      !Number.isFinite(item.unitPrice) ||
+      item.unitPrice < 0
+    )) {
+      alert("Periksa kembali nama barang, jumlah, satuan, dan harga.");
+      return;
+    }
+
+    const calculation = calculateEditTotal();
+
+    if (
+      !Number.isFinite(calculation.discount) ||
+      calculation.discount < 0 ||
+      calculation.discount > calculation.subtotal
+    ) {
+      alert("Diskon tidak boleh melebihi subtotal barang.");
+      return;
+    }
+
+    if (calculation.total <= 0) {
+      alert("Total pembayaran harus lebih dari nol.");
+      return;
+    }
+
+    payload.items = items;
+    payload.discount = calculation.discount;
+    payload.amount = calculation.total;
+  }
+
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran bukti maksimal 5 MB.");
+      return;
+    }
+
+    if (![
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf"
+    ].includes(file.type)) {
+      alert("Format bukti harus JPG, PNG, WEBP, atau PDF.");
+      return;
+    }
+  }
+
+  const button = document.getElementById("updateTransactionButton");
+  button.disabled = true;
+  button.textContent = "Menyimpan...";
+
+  try {
+    if (file) {
+      payload.receiptBase64 = await fileToBase64(file);
+      payload.receiptMime = file.type;
+      payload.receiptName = file.name;
+    }
+
+    const result = await api("updateTransaction", payload);
+
+    await refreshAll();
+
+    document.getElementById("transactionEditForm").classList.add("hidden");
+    document.getElementById("transactionDetailContent").classList.remove("hidden");
+
+    showTransactionDetail(result.id);
+
+    alert(result.message || "Transaksi berhasil diperbarui.");
+
+  } catch (error) {
+    alert("Gagal memperbarui transaksi: " + error.message);
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "Simpan Perubahan";
+  }
+}
 </script>
 
 <div id="transactionModal" class="modal-overlay hidden" onclick="if(event.target===this) closeTransactionModal()">
